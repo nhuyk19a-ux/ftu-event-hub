@@ -780,7 +780,7 @@ function renderHome() {
         <div class="ecard-meta">${formatDate(e.date)}</div>
         <div class="ecard-tags">
           ${statusBadge(e.status)}
-          ${e.mucDRL !== '0' ? `<span class="tag tag-blue">Mục ${e.mucDRL}·${e.diemDRL}đ</span>` : '<span class="tag tag-gray">Không ĐRL</span>'}
+          ${e.mucDRL != '0' ? `<span class="tag tag-blue">Mục ${e.mucDRL}·${e.diemDRL}đ</span>` : '<span class="tag tag-gray">Không ĐRL</span>'}
           ${e.skills.slice(0,1).map(s => `<span class="tag tag-green">${s}</span>`).join('')}
         </div>
         ${e.rating > 0 ? `<div class="ecard-stars">⭐ ${e.rating} · ${e.reviewCount} đánh giá</div>` : ''}
@@ -849,7 +849,7 @@ function renderExplore() {
     const matchType = typeFilter === 'all' || e.type === typeFilter;
     const matchSkill = skillFilters.length === 0 || skillFilters.some(s => e.skills.includes(s));
     const matchDRL = drlFilters.length === 0 || drlFilters.some(d => {
-      if (d === 'Không ĐRL') return e.mucDRL === '0';
+      if (d === 'Không ĐRL') return e.mucDRL == '0';
       return 'Mục ' + e.mucDRL === d;
     });
     return matchQ && matchType && matchSkill && matchDRL;
@@ -1118,7 +1118,7 @@ function setDrlMuc(muc, el) {
 function renderDRL() {
   document.getElementById('drl-muc-desc').textContent = DRL_DESCS[currentDrlMuc] || '';
   const list = EVENTS
-    .filter(e => e.mucDRL === currentDrlMuc)
+    .filter(e => e.mucDRL == currentDrlMuc)
     .sort((a,b) => {
       const daysA = daysUntil(a.deadline);
       const daysB = daysUntil(b.deadline);
