@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FTU Event Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #c8102e;
+  --green-dark: #9b0c22;
+  --green-light: #fdf0f2;
+  --green-mid: #f5b8c2;
+  --amber: #f59e0b;
+  --amber-light: #fef3c7;
+  --blue: #3b82f6;
+  --blue-light: #eff6ff;
+  --red: #ef4444;
+  --red-light: #fef2f2;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --white: #ffffff;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+  --font: 'Be Vietnam Pro', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--gray-50);
+  color: var(--gray-800);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── LAYOUT ── */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+.main { flex: 1; padding-bottom: 80px; }
+
+/* ── PAGES ── */
+.page { display: none; animation: fadeIn .25s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── NAV ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 10px 4px 8px; cursor: pointer;
+  color: var(--gray-400); font-size: 10px; gap: 3px;
+  transition: color .2s; border: none; background: none;
+  font-family: var(--font);
+}
+.nav-item svg { width: 20px; height: 20px; stroke-width: 1.8; fill: none; stroke: currentColor; }
+.nav-item.active { color: var(--green); }
+.nav-item span { font-weight: 500; }
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 60%, #e84060 100%);
+  padding: 28px 20px 24px; color: white; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -20px; left: 30px;
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+.hero-tag {
+  display: inline-block; background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white; font-size: 11px; font-weight: 500;
+  padding: 3px 10px; border-radius: 99px; margin-bottom: 10px;
+  letter-spacing: .3px;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; line-height: 1.2; margin-bottom: 8px;
+  font-weight: 700;
+}
+.hero p { font-size: 13px; opacity: .85; line-height: 1.5; margin-bottom: 18px; }
+.hero-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.hpill {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  color: white; font-size: 12px; font-weight: 500; padding: 5px 14px;
+  border-radius: 99px; cursor: pointer; transition: background .15s;
+  font-family: var(--font);
+}
+.hpill:hover, .hpill.active { background: rgba(255,255,255,0.3); }
+
+/* ── STATS ── */
+.stats-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px; padding: 16px;
+}
+.stat-card {
+  background: var(--white); border-radius: var(--radius);
+  padding: 14px 10px; text-align: center;
+  box-shadow: var(--shadow); border: 1px solid var(--gray-100);
+}
+.stat-n { font-size: 22px; font-weight: 700; color: var(--green-dark); line-height: 1; }
+.stat-l { font-size: 11px; color: var(--gray-500); margin-top: 3px; }
+
+/* ── SECTION ── */
+.section { padding: 0 16px 20px; }
+.section-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.section-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+.see-all { font-size: 12px; color: var(--green); font-weight: 500; cursor: pointer; border: none; background: none; font-family: var(--font); }
+
+/* ── QUICK LINKS ── */
+.quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.qcard {
+  background: var(--white); border-radius: var(--radius);
+  padding: 14px; display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow); border: 1px solid var(--gray-100);
+  cursor: pointer; transition: all .15s;
+}
+.qcard:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.qicon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.qcard-text { font-size: 12px; font-weight: 600; color: var(--gray-800); }
+.qcard-sub { font-size: 11px; color: var(--gray-400); margin-top: 1px; }
+
+/* ── EVENT CARDS ── */
+.event-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ecard {
+  background: var(--white); border-radius: var(--radius);
+  box-shadow: var(--shadow); border: 1px solid var(--gray-100);
+  overflow: hidden; cursor: pointer; transition: all .15s;
+}
+.ecard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.ecard-img {
+  height: 80px; display: flex; align-items: center; justify-content: center;
+  font-size: 28px; position: relative;
+}
+.ecard-body { padding: 10px; }
+.ecard-title { font-size: 12px; font-weight: 600; color: var(--gray-800); line-height: 1.3; margin-bottom: 6px; }
+.ecard-meta { font-size: 10px; color: var(--gray-400); margin-bottom: 6px; }
+.ecard-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.ecard-stars { font-size: 10px; color: var(--gray-400); margin-top: 5px; }
+.tag {
+  font-size: 10px; padding: 2px 7px; border-radius: 99px;
+  font-weight: 500; white-space: nowrap;
+}
+.tag-green { background: var(--green-light); color: var(--green-dark); }
+.tag-blue { background: var(--blue-light); color: var(--blue); }
+.tag-amber { background: var(--amber-light); color: #92400e; }
+.tag-gray { background: var(--gray-100); color: var(--gray-500); }
+.tag-red { background: var(--red-light); color: var(--red); }
+
+/* ── CTA ── */
+.cta-box {
+  margin: 0 16px; background: var(--amber-light);
+  border: 1px solid #fde68a; border-radius: var(--radius);
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+}
+.cta-box-text { font-size: 12px; font-weight: 600; color: #78350f; flex: 1; }
+.cta-box-sub { font-size: 11px; color: #92400e; font-weight: 400; }
+.cta-arrow { font-size: 18px; }
+
+/* ── EXPLORE PAGE ── */
+.explore-top {
+  background: var(--white); padding: 16px 16px 0;
+  border-bottom: 1px solid var(--gray-100); position: sticky; top: 0; z-index: 10;
+}
+.explore-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--gray-50); border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm); padding: 9px 12px; margin-bottom: 12px;
+}
+.search-box input {
+  flex: 1; border: none; background: none; font-size: 13px;
+  color: var(--gray-800); font-family: var(--font); outline: none;
+}
+.search-box input::placeholder { color: var(--gray-400); }
+.search-icon { color: var(--gray-400); font-size: 15px; }
+.filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
+.filter-tabs::-webkit-scrollbar { display: none; }
+.ftab {
+  white-space: nowrap; font-size: 12px; font-weight: 500;
+  padding: 6px 14px; border-radius: 99px; border: 1px solid var(--gray-200);
+  background: var(--white); color: var(--gray-500); cursor: pointer;
+  transition: all .15s; font-family: var(--font);
+}
+.ftab.active { background: var(--green); color: var(--white); border-color: var(--green); }
+.filter-section { padding: 12px 16px 0; }
+.filter-label { font-size: 11px; font-weight: 600; color: var(--gray-400); margin-bottom: 6px; letter-spacing: .4px; text-transform: uppercase; }
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip {
+  font-size: 11px; padding: 4px 12px; border-radius: 99px;
+  border: 1px solid var(--gray-200); background: var(--white);
+  color: var(--gray-500); cursor: pointer; transition: all .15s;
+  font-family: var(--font); font-weight: 500;
+}
+.chip.active { background: var(--green-light); color: var(--green-dark); border-color: var(--green-mid); }
+.results-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px; font-size: 12px; color: var(--gray-400);
+}
+.event-list-page { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.event-row {
+  background: var(--white); border-radius: var(--radius);
+  border: 1px solid var(--gray-100); padding: 14px;
+  box-shadow: var(--shadow); cursor: pointer; transition: all .15s;
+}
+.event-row:hover { border-color: var(--green-mid); box-shadow: var(--shadow-md); }
+.er-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 5px; }
+.er-title { font-size: 13px; font-weight: 600; color: var(--gray-800); line-height: 1.3; flex: 1; }
+.er-drl { font-size: 11px; padding: 3px 9px; border-radius: 99px; background: var(--blue-light); color: var(--blue); font-weight: 600; white-space: nowrap; }
+.er-meta { font-size: 11px; color: var(--gray-400); margin-bottom: 7px; }
+.er-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.er-stars { font-size: 11px; color: var(--gray-400); margin-top: 6px; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); }
+.empty-state .big { font-size: 36px; margin-bottom: 8px; }
+.empty-state p { font-size: 13px; }
+
+/* ── CALENDAR PAGE ── */
+.cal-header-bar {
+  background: var(--white); padding: 16px;
+  border-bottom: 1px solid var(--gray-100);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cal-title-row { font-size: 18px; font-weight: 700; }
+.cal-nav { display: flex; gap: 8px; align-items: center; }
+.cal-nav button {
+  background: var(--gray-100); border: none; border-radius: 8px;
+  width: 32px; height: 32px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.cal-nav button:hover { background: var(--gray-200); }
+.cal-month-label { font-size: 14px; font-weight: 600; color: var(--gray-700); min-width: 100px; text-align: center; }
+.cal-grid-wrap { padding: 12px 16px; }
+.cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+.cal-dow span { text-align: center; font-size: 11px; font-weight: 600; color: var(--gray-400); padding: 4px 0; }
+.cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day {
+  aspect-ratio: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; border-radius: 8px;
+  cursor: pointer; transition: background .15s; position: relative;
+  font-size: 12px; font-weight: 500; color: var(--gray-700);
+}
+.cal-day:hover { background: var(--gray-100); }
+.cal-day.other-month { color: var(--gray-300); }
+.cal-day.today { background: var(--green); color: white; font-weight: 700; }
+.cal-day.has-event { background: var(--green-light); color: var(--green-dark); font-weight: 600; }
+.cal-day.today.has-event { background: var(--green); color: white; }
+.cal-dot {
+  width: 4px; height: 4px; border-radius: 50%; background: var(--green);
+  position: absolute; bottom: 3px;
+}
+.cal-day.today .cal-dot { background: white; }
+.cal-events-below { padding: 0 16px 16px; }
+.cal-day-events-title { font-size: 13px; font-weight: 700; color: var(--gray-700); margin-bottom: 10px; padding-top: 4px; border-top: 1px solid var(--gray-100); }
+.cal-legend { display: flex; gap: 12px; padding: 0 16px 12px; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-400); }
+.leg-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* ── REVIEW PAGE ── */
+.review-header {
+  background: var(--white); padding: 16px;
+  border-bottom: 1px solid var(--gray-100);
+}
+.review-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.review-header p { font-size: 12px; color: var(--gray-400); }
+.review-trust {
+  margin: 12px 16px; background: var(--green-light);
+  border: 1px solid var(--green-mid); border-radius: var(--radius);
+  padding: 10px 14px; font-size: 12px; color: var(--green-dark); font-weight: 500;
+}
+.ev-selector { padding: 12px 16px; }
+.ev-selector-label { font-size: 11px; font-weight: 600; color: var(--gray-400); letter-spacing: .4px; text-transform: uppercase; margin-bottom: 8px; }
+.ev-pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.ev-pills::-webkit-scrollbar { display: none; }
+.evpill {
+  white-space: nowrap; font-size: 12px; font-weight: 500;
+  padding: 6px 14px; border-radius: 99px;
+  border: 1px solid var(--gray-200); background: var(--white);
+  color: var(--gray-500); cursor: pointer; transition: all .15s;
+  font-family: var(--font);
+}
+.evpill.active { background: var(--green); color: white; border-color: var(--green); }
+.score-card {
+  margin: 0 16px 12px; background: var(--white);
+  border: 1px solid var(--gray-100); border-radius: var(--radius);
+  padding: 14px; box-shadow: var(--shadow);
+}
+.score-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--gray-700); }
+.score-main { display: flex; gap: 16px; align-items: center; }
+.big-score { font-size: 38px; font-weight: 700; color: var(--green-dark); line-height: 1; }
+.score-stars { font-size: 14px; margin-top: 3px; }
+.score-count { font-size: 11px; color: var(--gray-400); }
+.score-bars { flex: 1; }
+.bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.bar-row span { font-size: 10px; color: var(--gray-400); min-width: 8px; }
+.bar-track { flex: 1; height: 5px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width .4s ease; }
+.reviews-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+.rcard {
+  background: var(--white); border: 1px solid var(--gray-100);
+  border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow);
+}
+.rc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.rc-user { font-size: 12px; font-weight: 600; color: var(--gray-700); }
+.rc-stars { font-size: 12px; color: var(--amber); }
+.rc-body { font-size: 12px; color: var(--gray-600); line-height: 1.5; margin-bottom: 8px; }
+.rc-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.write-review-btn {
+  margin: 14px 16px; padding: 12px;
+  background: var(--white); border: 1.5px dashed var(--gray-200);
+  border-radius: var(--radius); text-align: center;
+  font-size: 13px; font-weight: 500; color: var(--gray-500);
+  cursor: pointer; transition: all .15s; font-family: var(--font);
+  width: calc(100% - 32px);
+}
+.write-review-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+
+/* ── DRL PAGE ── */
+.drl-header {
+  background: var(--white); padding: 16px;
+  border-bottom: 1px solid var(--gray-100);
+}
+.drl-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.drl-header p { font-size: 12px; color: var(--gray-400); }
+.drl-muc-tabs { display: flex; gap: 8px; padding: 14px 16px; }
+.drl-tab {
+  flex: 1; padding: 10px 4px; border-radius: var(--radius-sm);
+  text-align: center; font-size: 12px; font-weight: 600;
+  border: 1.5px solid var(--gray-200); background: var(--white);
+  color: var(--gray-400); cursor: pointer; transition: all .15s;
+  font-family: var(--font);
+}
+.drl-tab.active { background: var(--green); color: white; border-color: var(--green); }
+.drl-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.drl-item {
+  background: var(--white); border: 1px solid var(--gray-100);
+  border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow);
+  cursor: pointer; transition: all .15s;
+}
+.drl-item:hover { border-color: var(--green-mid); }
+.drl-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.drl-muc-badge { font-size: 10px; font-weight: 600; color: var(--blue); background: var(--blue-light); padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; display: inline-block; }
+.drl-item-name { font-size: 13px; font-weight: 600; color: var(--gray-800); line-height: 1.3; }
+.drl-pts { font-size: 15px; font-weight: 700; color: var(--green-dark); }
+.drl-item-meta { font-size: 11px; color: var(--gray-400); margin-top: 5px; }
+.deadline-soon { color: var(--red); font-weight: 600; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 85vh; overflow-y: auto;
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle {
+  width: 36px; height: 4px; background: var(--gray-200);
+  border-radius: 2px; margin: 12px auto 16px;
+}
+.modal-body { padding: 0 20px 32px; }
+.modal-event-img {
+  height: 120px; border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px; margin-bottom: 16px;
+}
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+.modal-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.modal-info { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.modal-info-row { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+.modal-info-icon { font-size: 16px; flex-shrink: 0; }
+.modal-info-label { color: var(--gray-400); font-size: 11px; }
+.modal-info-val { color: var(--gray-700); font-weight: 500; }
+.modal-desc { font-size: 13px; color: var(--gray-600); line-height: 1.6; margin-bottom: 16px; background: var(--gray-50); border-radius: var(--radius-sm); padding: 12px; }
+.modal-btn {
+  width: 100%; padding: 14px; border-radius: var(--radius);
+  background: var(--green); color: white; border: none;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: var(--font); transition: background .15s;
+}
+.modal-btn:hover { background: var(--green-dark); }
+.modal-close {
+  float: right; background: var(--gray-100); border: none;
+  border-radius: 50%; width: 30px; height: 30px; cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+  margin-left: 8px; flex-shrink: 0;
+}
+
+/* ── SCROLL TOP AREA ── */
+.page-scroll { max-height: calc(100vh - 57px); overflow-y: auto; }
+</style>
+</head>
+<body><!-- ══ LOADING OVERLAY ══ -->
+<div id="loading-overlay" style="
+  position:fixed; inset:0; background:white; z-index:9999;
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+">
+  <div style="
+    width:44px; height:44px;
+    border:3px solid #fdf0f2; border-top-color:#c8102e;
+    border-radius:50%; animation:spin .8s linear infinite;
+  "></div>
+  <div style="text-align:center">
+    <p style="font-size:13px;font-weight:600;color:#374151;margin-bottom:2px">FTU Event Hub</p>
+    <p style="font-size:11px;color:#9ca3af">Đang tải dữ liệu...</p>
+  </div>
+</div>
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
+<div class="app">
+  <main class="main">
+
+    <!-- ═══════════════ HOME PAGE ═══════════════ -->
+    <div class="page active" id="page-home">
+      <div class="hero"> 
+<button onclick="reloadData()" style="
+  position:absolute; top:16px; right:16px;
+  background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3);
+  color:white; border-radius:8px; padding:5px 10px; font-size:11px; cursor:pointer;
+">🔄 Làm mới</button>
+
+        <div class="hero-tag">🎓 FTU Event Hub</div>
+        <h1>Sự kiện ngoại khóa FTU</h1>
+        <p>Tổng hợp toàn bộ hoạt động ngoại khóa — lọc theo ĐRL, kỹ năng và định hướng của bạn</p>
+        <div class="hero-filters">
+          <button class="hpill active" onclick="filterHome('all',this)">Tất cả</button>
+          <button class="hpill" onclick="filterHome('Talkshow',this)">Talkshow</button>
+          <button class="hpill" onclick="filterHome('Workshop',this)">Workshop</button>
+          <button class="hpill" onclick="filterHome('Tình nguyện',this)">Tình nguyện</button>
+          <button class="hpill" onclick="filterHome('Cuộc thi',this)">Cuộc thi</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-n" id="stat-upcoming">0</div><div class="stat-l">Sự kiện sắp tới</div></div>
+        <div class="stat-card"><div class="stat-n" id="stat-clubs">0</div><div class="stat-l">CLB tham gia</div></div>
+        <div class="stat-card"><div class="stat-n" id="stat-reviews">0</div><div class="stat-l">Lượt đánh giá</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <span class="section-title">🔥 Sự kiện nổi bật</span>
+          <button class="see-all" onclick="showPage('explore')">Xem tất cả →</button>
+        </div>
+        <div class="event-grid" id="home-events"></div>
+      </div>
+
+      <div class="section" style="padding-top:0">
+        <div class="section-head"><span class="section-title">Truy cập nhanh</span></div>
+        <div class="quick-grid">
+          <div class="qcard" onclick="showPage('explore')">
+            <div class="qicon" style="background:#e6f7f1">🔍</div>
+            <div><div class="qcard-text">Khám phá</div><div class="qcard-sub">Tất cả sự kiện</div></div>
+          </div>
+          <div class="qcard" onclick="showPage('calendar')">
+            <div class="qicon" style="background:#eff6ff">📅</div>
+            <div><div class="qcard-text">Lịch tháng</div><div class="qcard-sub">Xem theo ngày</div></div>
+          </div>
+          <div class="qcard" onclick="showPage('review')">
+            <div class="qicon" style="background:#fdf0f2">📚</div>
+            <div><div class="qcard-text">Trạm Tri Thức</div><div class="qcard-sub">Review & Key Takeaways</div></div>
+          </div>
+          <div class="qcard" onclick="showPage('drl')">
+            <div class="qicon" style="background:#fef2f2">🎯</div>
+            <div><div class="qcard-text">Lọc ĐRL</div><div class="qcard-sub">Theo mục điểm</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-box" onclick="alert('Tính năng submit event sẽ kết nối với Tally Form!')">
+        <div>
+          <div class="cta-box-text">📮 Bạn là BTC sự kiện?</div>
+          <div class="cta-box-sub">Gửi event của bạn lên Hub ngay</div>
+        </div>
+        <span class="cta-arrow">→</span>
+      </div>
+      <div style="height:16px"></div>
+    </div>
+
+    <!-- ═══════════════ EXPLORE PAGE ═══════════════ -->
+    <div class="page" id="page-explore">
+      <div class="explore-top">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <div class="explore-title" style="margin:0">🔍 Khám phá</div>
+        </div>
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Tìm theo tên CLB, chủ đề, kỹ năng..." id="search-input" oninput="renderExplore()">
+        </div>
+        <div class="filter-tabs" id="type-filter">
+          <button class="ftab active" onclick="setTypeFilter('all',this)">Tất cả</button>
+          <button class="ftab" onclick="setTypeFilter('Talkshow',this)">Talkshow</button>
+          <button class="ftab" onclick="setTypeFilter('Workshop',this)">Workshop</button>
+          <button class="ftab" onclick="setTypeFilter('Cuộc thi',this)">Cuộc thi</button>
+          <button class="ftab" onclick="setTypeFilter('Tình nguyện',this)">Tình nguyện</button>
+          <button class="ftab" onclick="setTypeFilter('Tuyển thành viên',this)">Tuyển TV</button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-label">Kỹ năng</div>
+        <div class="filter-chips" id="skill-chips"></div>
+        <div class="filter-label">Mục ĐRL</div>
+        <div class="filter-chips" id="drl-chips"></div>
+      </div>
+      <div class="results-bar">
+        <span id="results-count">Đang tải...</span>
+        <select onchange="setSortMode(this.value)" style="font-size:12px;color:#6b7280;border:none;background:none;font-family:'Be Vietnam Pro',sans-serif;cursor:pointer">
+          <option value="date">Sắp tới trước</option>
+          <option value="rating">Rating cao nhất</option>
+          <option value="drl">ĐRL cao nhất</option>
+        </select>
+      </div>
+      <div class="event-list-page" id="explore-list"></div>
+    </div>
+
+    <!-- ═══════════════ CALENDAR PAGE ═══════════════ -->
+    <div class="page" id="page-calendar">
+      <div class="cal-header-bar">
+        <div class="cal-title-row">📅 Lịch sự kiện</div>
+        <div class="cal-nav">
+          <button onclick="changeMonth(-1)">‹</button>
+          <span class="cal-month-label" id="cal-month-label"></span>
+          <button onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="cal-dow">
+          <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+        </div>
+        <div class="cal-days" id="cal-days"></div>
+      </div>
+      <div class="cal-legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#e6f7f1;border:1px solid #b3e6d4"></div>Có sự kiện</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#1a9e6f"></div>Hôm nay</div>
+      </div>
+      <div class="cal-events-below">
+        <div class="cal-day-events-title" id="cal-selected-title">Chọn ngày để xem sự kiện</div>
+        <div id="cal-day-events"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ REVIEW PAGE ═══════════════ -->
+    <div class="page" id="page-review">
+      <div class="review-header">
+        <h2>📚 Trạm Tri Thức & Review</h2>
+        <p>Học lỏm kiến thức từ sự kiện bạn lỡ mất — đánh giá thật từ sinh viên FTU</p>
+      </div>
+      <div class="review-trust">✅ Tất cả review đã được kiểm duyệt bởi nhóm FTU Event Hub</div>
+
+      <!-- CLB Reputation Section -->
+      <div style="padding:12px 16px 0">
+        <div style="font-size:11px;font-weight:600;color:#9ca3af;letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px">🏅 Uy tín CLB tổ chức</div>
+        <div id="club-reputation-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <div style="padding:12px 16px 4px;border-top:1px solid #f3f4f6;margin-top:12px">
+        <div style="font-size:11px;font-weight:600;color:#9ca3af;letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px">📖 Chọn sự kiện để đọc Key Takeaways</div>
+        <div class="ev-pills" id="review-event-pills"></div>
+      </div>
+      <div class="score-card" id="score-card"></div>
+      <div class="reviews-list" id="reviews-list"></div>
+      <button class="write-review-btn" onclick="alert('Form đánh giá sẽ được mở tại đây (kết nối Tally Form)')">
+        ✏️ Chia sẻ trải nghiệm & Key Takeaways của bạn
+      </button>
+      <div style="padding:4px 16px 8px;font-size:11px;color:#9ca3af;text-align:center">
+        Review sẽ được hiện sau khi kiểm duyệt (trong 24h)
+      </div>
+    </div>
+
+    <!-- ═══════════════ DRL PAGE ═══════════════ -->
+    <div class="page" id="page-drl">
+      <div class="drl-header">
+        <h2>🎯 Lọc theo ĐRL</h2>
+        <p>Tìm sự kiện cộng điểm rèn luyện theo mục bạn cần</p>
+      </div>
+      <div class="drl-muc-tabs">
+        <button class="drl-tab active" onclick="setDrlMuc('1.1',this)">Mục 1.1</button>
+        <button class="drl-tab" onclick="setDrlMuc('3.1',this)">Mục 3.1</button>
+        <button class="drl-tab" onclick="setDrlMuc('3.2',this)">Mục 3.2</button>
+        <button class="drl-tab" onclick="setDrlMuc('0',this)">Không ĐRL</button>
+      </div>
+      <div style="padding:0 16px 8px;font-size:12px;color:#6b7280" id="drl-muc-desc"></div>
+      <div class="drl-list" id="drl-list"></div>
+    </div>
+
+  </main>
+
+  <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="showPage('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Trang chủ</span>
+    </button>
+    <button class="nav-item" id="nav-explore" onclick="showPage('explore')">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Khám phá</span>
+    </button>
+    <button class="nav-item" id="nav-calendar" onclick="showPage('calendar')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Lịch</span>
+    </button>
+    <button class="nav-item" id="nav-review" onclick="showPage('review')">
+      <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <span>Tri Thức</span>
+    </button>
+    <button class="nav-item" id="nav-drl" onclick="showPage('drl')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      <span>ĐRL</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ═══════════════ EVENT MODAL ═══════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//   DATA — chỉnh sửa tại đây để cập nhật
+// ══════════════════════════════════════════
+// ════════════════════════════════════════════════
+//  CẤU HÌNH API — Thay bằng URL Apps Script của bạn
+// ════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbyiqEGJO__CqvAtsYg6w0vx1NHQ05a8BD4aekgVUj1bidB0MIC_qeWPYNH7XIIurHX_pQ/exec';
+
+// ── Biến data (sẽ được điền sau khi load) ──
+let EVENTS  = [];
+let REVIEWS = [];
+
+// ── Hàm tải data từ Google Sheets ──
+async function loadData() {
+  showLoading(true);
+
+  try {
+    const [evRes, rvRes] = await Promise.all([
+      fetch(API_URL + '?action=getEvents&t=' + Date.now()),
+      fetch(API_URL + '?action=getReviews&t=' + Date.now())
+    ]);
+
+    if (!evRes.ok || !rvRes.ok) throw new Error('Network error');
+
+    EVENTS  = await evRes.json();
+    REVIEWS = await rvRes.json();
+
+  } catch (err) {
+    console.error('Lỗi load data:', err);
+    showLoading(false);
+    document.getElementById('loading-overlay').innerHTML = `
+      <div style="text-align:center;padding:24px">
+        <div style="font-size:40px;margin-bottom:10px">😔</div>
+        <p style="font-size:14px;color:#374151;font-weight:600;margin-bottom:4px">Không thể tải dữ liệu</p>
+        <p style="font-size:12px;color:#9ca3af;margin-bottom:16px">Kiểm tra kết nối mạng và thử lại</p>
+        <button onclick="reloadData()"
+          style="padding:9px 22px;background:#c8102e;color:white;border:none;
+                 border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+          🔄 Thử lại
+        </button>
+      </div>
+    `;
+    document.getElementById('loading-overlay').style.display = 'flex';
+    return false;
+  }
+
+  showLoading(false);
+  return true;
+}
+
+function showLoading(show) {
+  document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+}
+
+async function reloadData() {
+  const ok = await loadData();
+  if (ok) {
+    renderHome();
+    initExplore();
+    renderExplore();
+  }
+}
+
+
+// ══════════════════════════════════════════
+//   STATE
+// ══════════════════════════════════════════
+let currentPage = 'home';
+let homeFilter = 'all';
+let typeFilter = 'all';
+let skillFilters = [];
+let drlFilters = [];
+let sortMode = 'date';
+let currentDrlMuc = '3.1';
+let selectedReviewEvent = null;
+let calYear, calMonth, selectedCalDay = null;
+
+// ══════════════════════════════════════════
+//   NAVIGATION
+// ══════════════════════════════════════════
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  currentPage = page;
+  if (page === 'explore') renderExplore();
+  if (page === 'calendar') renderCalendar();
+  if (page === 'review') renderReview();
+  if (page === 'drl') renderDRL();
+  window.scrollTo(0, 0);
+}
+
+// ══════════════════════════════════════════
+//   HOME
+// ══════════════════════════════════════════
+function filterHome(type, el) {
+  homeFilter = type;
+  document.querySelectorAll('.hpill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderHome();
+}
+
+function renderHome() {
+  const upcoming = EVENTS.filter(e => e.mucDRL !== 'x');
+  const clubs = [...new Set(EVENTS.map(e => e.club))].length;
+  const totalReviews = EVENTS.reduce((s,e) => s + e.reviewCount, 0);
+  document.getElementById('stat-upcoming').textContent = upcoming.length;
+  document.getElementById('stat-clubs').textContent = clubs;
+  document.getElementById('stat-reviews').textContent = totalReviews;
+
+  let filtered = homeFilter === 'all' ? EVENTS : EVENTS.filter(e => e.type === homeFilter);
+  filtered = filtered.slice(0, 4);
+
+  document.getElementById('home-events').innerHTML = filtered.map(e => `
+    <div class="ecard" onclick="openModal(${e.id})">
+      <div class="ecard-img" style="background:${e.color}">${e.emoji}</div>
+      <div class="ecard-body">
+        <div class="ecard-title">${e.name}</div>
+        <div class="ecard-meta">${formatDate(e.date)}</div>
+        <div class="ecard-tags">
+          ${statusBadge(e.status)}
+          ${e.mucDRL !== '0' ? `<span class="tag tag-blue">Mục ${e.mucDRL}·${e.diemDRL}đ</span>` : '<span class="tag tag-gray">Không ĐRL</span>'}
+          ${e.skills.slice(0,1).map(s => `<span class="tag tag-green">${s}</span>`).join('')}
+        </div>
+        ${e.rating > 0 ? `<div class="ecard-stars">⭐ ${e.rating} · ${e.reviewCount} đánh giá</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function statusBadge(status) {
+  if (status === 'open')   return '<span class="tag" style="background:#dcfce7;color:#166534">🟢 Đang mở đơn</span>';
+  if (status === 'closed') return '<span class="tag" style="background:#fef9c3;color:#854d0e">🟡 Đã đóng đơn</span>';
+  if (status === 'ended')  return '<span class="tag" style="background:#f1f5f9;color:#64748b">⚫ Đã kết thúc</span>';
+  return '';
+}
+
+// ══════════════════════════════════════════
+//   EXPLORE
+// ══════════════════════════════════════════
+const ALL_SKILLS = [...new Set(EVENTS.flatMap(e => e.skills))];
+const ALL_DRL = ['Mục 1.1', 'Mục 3.1', 'Mục 3.2', 'Không ĐRL'];
+
+function initExplore() {
+  document.getElementById('skill-chips').innerHTML = ALL_SKILLS.map(s => `
+    <button class="chip" onclick="toggleSkill('${s}',this)">${s}</button>
+  `).join('');
+  document.getElementById('drl-chips').innerHTML = ALL_DRL.map(d => `
+    <button class="chip" onclick="toggleDrlChip('${d}',this)">${d}</button>
+  `).join('');
+}
+
+function setTypeFilter(type, el) {
+  typeFilter = type;
+  document.querySelectorAll('#type-filter .ftab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderExplore();
+}
+
+function toggleSkill(skill, el) {
+  if (skillFilters.includes(skill)) {
+    skillFilters = skillFilters.filter(s => s !== skill);
+    el.classList.remove('active');
+  } else {
+    skillFilters.push(skill);
+    el.classList.add('active');
+  }
+  renderExplore();
+}
+
+function toggleDrlChip(drl, el) {
+  if (drlFilters.includes(drl)) {
+    drlFilters = drlFilters.filter(d => d !== drl);
+    el.classList.remove('active');
+  } else {
+    drlFilters.push(drl);
+    el.classList.add('active');
+  }
+  renderExplore();
+}
+
+function setSortMode(mode) { sortMode = mode; renderExplore(); }
+
+function renderExplore() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  let list = EVENTS.filter(e => {
+    const matchQ = !q || e.name.toLowerCase().includes(q) || e.club.toLowerCase().includes(q) || e.skills.some(s => s.toLowerCase().includes(q));
+    const matchType = typeFilter === 'all' || e.type === typeFilter;
+    const matchSkill = skillFilters.length === 0 || skillFilters.some(s => e.skills.includes(s));
+    const matchDRL = drlFilters.length === 0 || drlFilters.some(d => {
+      if (d === 'Không ĐRL') return e.mucDRL === '0';
+      return 'Mục ' + e.mucDRL === d;
+    });
+    return matchQ && matchType && matchSkill && matchDRL;
+  });
+
+  if (sortMode === 'date') list.sort((a,b) => a.date.localeCompare(b.date));
+  else if (sortMode === 'rating') list.sort((a,b) => b.rating - a.rating);
+  else if (sortMode === 'drl') list.sort((a,b) => b.diemDRL - a.diemDRL);
+
+  document.getElementById('results-count').textContent = list.length + ' sự kiện phù hợp';
+
+  if (list.length === 0) {
+    document.getElementById('explore-list').innerHTML = `
+      <div class="empty-state"><div class="big">🔍</div><p>Không tìm thấy sự kiện phù hợp.<br>Thử điều chỉnh bộ lọc nhé!</p></div>
+    `;
+    return;
+  }
+
+  document.getElementById('explore-list').innerHTML = list.map(e => `
+    <div class="event-row" onclick="openModal(${e.id})">
+      <div class="er-top">
+        <div class="er-title">${e.emoji} ${e.name}</div>
+        ${e.mucDRL !== '0' ? `<span class="er-drl">Mục ${e.mucDRL}·${e.diemDRL}đ</span>` : ''}
+      </div>
+      <div class="er-meta">📅 ${formatDate(e.date)} ${e.time} &nbsp;|&nbsp; ${e.club} &nbsp;|&nbsp; ${e.mode === 'Online' ? '🌐 Online' : '📍 ' + e.location}</div>
+      <div class="er-tags">
+        ${statusBadge(e.status)}
+        ${e.skills.map(s => `<span class="tag tag-green">${s}</span>`).join('')}
+        <span class="tag tag-gray">${e.type}</span>
+      </div>
+      ${e.rating > 0 ? `<div class="er-stars">⭐ ${e.rating} · ${e.reviewCount} đánh giá</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//   CALENDAR
+// ══════════════════════════════════════════
+const MONTH_NAMES = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  selectedCalDay = null;
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const today = new Date();
+  document.getElementById('cal-month-label').textContent = MONTH_NAMES[calMonth] + ' ' + calYear;
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  let startDow = firstDay.getDay(); // 0=Sun
+  startDow = startDow === 0 ? 6 : startDow - 1; // convert to Mon=0
+
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+  const eventDays = {};
+  EVENTS.forEach(e => {
+    const d = new Date(e.date);
+    if (d.getFullYear() === calYear && d.getMonth() === calMonth) {
+      const day = d.getDate();
+      if (!eventDays[day]) eventDays[day] = [];
+      eventDays[day].push(e);
+    }
+  });
+
+  let html = '';
+  // prev month days
+  for (let i = startDow - 1; i >= 0; i--) {
+    html += `<div class="cal-day other-month"><span>${daysInPrev - i}</span></div>`;
+  }
+  // current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = today.getDate() === d && today.getMonth() === calMonth && today.getFullYear() === calYear;
+    const hasEvent = !!eventDays[d];
+    const isSelected = selectedCalDay === d;
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    else if (hasEvent) cls += ' has-event';
+    if (isSelected) cls += ' selected';
+    html += `<div class="${cls}" onclick="selectCalDay(${d})">
+      <span>${d}</span>
+      ${hasEvent && !isToday ? '<div class="cal-dot"></div>' : ''}
+    </div>`;
+  }
+  // next month fill
+  const total = startDow + daysInMonth;
+  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-day other-month"><span>${i}</span></div>`;
+  }
+
+  document.getElementById('cal-days').innerHTML = html;
+
+  if (selectedCalDay) selectCalDay(selectedCalDay);
+}
+
+function selectCalDay(day) {
+  selectedCalDay = day;
+  const d = new Date(calYear, calMonth, day);
+  const dateStr = d.toISOString().split('T')[0];
+  const dayEvents = EVENTS.filter(e => e.date === dateStr);
+
+  document.getElementById('cal-selected-title').textContent =
+    `${day} tháng ${calMonth+1}, ${calYear} — ${dayEvents.length > 0 ? dayEvents.length + ' sự kiện' : 'Không có sự kiện'}`;
+
+  document.getElementById('cal-day-events').innerHTML = dayEvents.length === 0
+    ? `<div style="color:#9ca3af;font-size:12px;padding:8px 0">Không có sự kiện trong ngày này</div>`
+    : dayEvents.map(e => `
+      <div class="event-row" onclick="openModal(${e.id})" style="margin-bottom:8px">
+        <div class="er-top">
+          <div class="er-title">${e.emoji} ${e.name}</div>
+          ${e.mucDRL !== '0' ? `<span class="er-drl">Mục ${e.mucDRL} · ${e.diemDRL}đ</span>` : ''}
+        </div>
+        <div class="er-meta">🕐 ${e.time} &nbsp;|&nbsp; ${e.club}</div>
+        <div class="er-tags">${e.skills.map(s=>`<span class="tag tag-green">${s}</span>`).join('')}</div>
+      </div>
+    `).join('');
+
+  renderCalendar();
+}
+
+// ══════════════════════════════════════════
+//   REVIEW
+// ══════════════════════════════════════════
+function getClubReputation() {
+  // Group reviews by club, compute avg orgStars per club
+  const clubMap = {};
+  REVIEWS.forEach(r => {
+    const ev = EVENTS.find(e => e.id === r.eventId);
+    if (!ev) return;
+    if (!clubMap[ev.club]) clubMap[ev.club] = { stars: [], eventIds: new Set() };
+    clubMap[ev.club].stars.push(r.orgStars);
+    clubMap[ev.club].eventIds.add(ev.id);
+  });
+  return Object.entries(clubMap).map(([club, data]) => ({
+    club,
+    avg: (data.stars.reduce((s,v) => s+v, 0) / data.stars.length),
+    reviewCount: data.stars.length,
+    eventCount: data.eventIds.size,
+  })).sort((a,b) => b.avg - a.avg);
+}
+
+function starBar(avg) {
+  const full = Math.floor(avg);
+  const half = avg - full >= 0.4;
+  let s = '';
+  for (let i = 0; i < 5; i++) {
+    if (i < full) s += '<span style="color:#c8102e">★</span>';
+    else if (i === full && half) s += '<span style="color:#c8102e;opacity:.5">★</span>';
+    else s += '<span style="color:#e5e7eb">★</span>';
+  }
+  return s;
+}
+
+function renderReview() {
+  const reviewedEvents = EVENTS.filter(e => REVIEWS.some(r => r.eventId === e.id));
+  if (!selectedReviewEvent) selectedReviewEvent = reviewedEvents[0]?.id;
+
+  // Render CLB reputation cards
+  const reps = getClubReputation();
+  document.getElementById('club-reputation-list').innerHTML = reps.map(rep => `
+    <div style="background:#fff;border:1px solid #f3f4f6;border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;gap:12px">
+      <div style="font-size:26px;flex-shrink:0">🏛️</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#1f2937;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rep.club}</div>
+        <div style="font-size:11px;color:#6b7280">${rep.eventCount} sự kiện · ${rep.reviewCount} đánh giá</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:18px;font-weight:800;color:#9b0c22;line-height:1">${rep.avg.toFixed(1)}</div>
+        <div style="font-size:12px;letter-spacing:-1px">${starBar(rep.avg)}</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:1px">uy tín tổ chức</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Render event pills
+  document.getElementById('review-event-pills').innerHTML = reviewedEvents.map(e => `
+    <button class="evpill ${selectedReviewEvent === e.id ? 'active' : ''}" onclick="selectReviewEvent(${e.id})">${e.name.length > 32 ? e.name.substring(0,30)+'…' : e.name}</button>
+  `).join('');
+
+  renderReviewContent();
+}
+
+function selectReviewEvent(id) {
+  selectedReviewEvent = id;
+  renderReview();
+}
+
+function renderReviewContent() {
+  const ev = EVENTS.find(e => e.id === selectedReviewEvent);
+  const evReviews = REVIEWS.filter(r => r.eventId === selectedReviewEvent);
+  if (!ev || evReviews.length === 0) return;
+
+  const avgOrg = (evReviews.reduce((s,r) => s + r.orgStars, 0) / evReviews.length).toFixed(1);
+  const starCounts = [5,4,3,2,1].map(s => evReviews.filter(r => r.orgStars === s).length);
+
+  document.getElementById('score-card').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span style="font-size:20px">${ev.emoji}</span>
+      <div>
+        <div class="score-title" style="margin:0">${ev.name}</div>
+        <div style="font-size:11px;color:#9ca3af">do ${ev.club} tổ chức</div>
+      </div>
+    </div>
+    <div style="font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px">⭐ Điểm khâu tổ chức (đúng giờ, không gian, âm thanh)</div>
+    <div class="score-main">
+      <div>
+        <div class="big-score">${avgOrg}</div>
+        <div style="font-size:14px;letter-spacing:-1px;margin-top:3px">${starBar(parseFloat(avgOrg))}</div>
+        <div class="score-count">${evReviews.length} đánh giá</div>
+      </div>
+      <div class="score-bars">
+        ${[5,4,3,2,1].map((s,i) => `
+          <div class="bar-row">
+            <span>${s}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${evReviews.length > 0 ? (starCounts[i]/evReviews.length*100) : 0}%"></div></div>
+            <span style="min-width:16px">${starCounts[i]}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('reviews-list').innerHTML = `
+    <div style="font-size:11px;font-weight:600;color:#9ca3af;letter-spacing:.4px;text-transform:uppercase;padding:0 0 6px">💡 Key Takeaways từ người tham gia</div>
+    ${evReviews.map(r => `
+      <div class="rcard">
+        <div class="rc-top">
+          <span class="rc-user">${r.user}</span>
+          <span style="font-size:11px;color:#6b7280">Tổ chức: ${starBar(r.orgStars)} ${r.orgStars}★</span>
+        </div>
+        <div style="background:#fdf0f2;border-left:3px solid #c8102e;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:8px;font-size:12px;color:#374151;line-height:1.6">
+          <span style="font-size:10px;font-weight:700;color:#9b0c22;display:block;margin-bottom:4px">💡 BÀI HỌC TÂM ĐẮC</span>
+          ${r.takeaway}
+        </div>
+        <div class="rc-tags">
+          ${r.tagsPos.map(t => `<span class="tag tag-green">${t}</span>`).join('')}
+          ${r.tagsNeg.map(t => `<span class="tag tag-red">${t}</span>`).join('')}
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+// ══════════════════════════════════════════
+//   DRL
+// ══════════════════════════════════════════
+const DRL_DESCS = {
+  '1.1': 'Mục 1.1 — Kết quả học tập & Nghiên cứu khoa học',
+  '3.1': 'Mục 3.1 — Tham gia hoạt động đoàn thể, CLB',
+  '3.2': 'Mục 3.2 — Hoạt động xã hội & Tình nguyện',
+  '0': 'Sự kiện không cộng ĐRL — nhưng vẫn đáng tham gia!'
+};
+
+function setDrlMuc(muc, el) {
+  currentDrlMuc = muc;
+  document.querySelectorAll('.drl-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderDRL();
+}
+
+function renderDRL() {
+  document.getElementById('drl-muc-desc').textContent = DRL_DESCS[currentDrlMuc] || '';
+  const list = EVENTS
+    .filter(e => e.mucDRL === currentDrlMuc)
+    .sort((a,b) => {
+      const daysA = daysUntil(a.deadline);
+      const daysB = daysUntil(b.deadline);
+      return daysA - daysB;
+    });
+
+  if (list.length === 0) {
+    document.getElementById('drl-list').innerHTML = `<div class="empty-state"><div class="big">🎯</div><p>Chưa có sự kiện cho mục này.<br>Cập nhật sớm!</p></div>`;
+    return;
+  }
+
+  document.getElementById('drl-list').innerHTML = list.map(e => {
+    const days = daysUntil(e.deadline);
+    const urgentClass = days <= 3 ? 'deadline-soon' : '';
+    const urgentText = days < 0 ? 'Đã hết hạn' : days === 0 ? '⚠️ Hết hạn hôm nay!' : days <= 3 ? `⚠️ Còn ${days} ngày` : `Còn ${days} ngày`;
+    return `
+      <div class="drl-item" onclick="openModal(${e.id})">
+        <div class="drl-item-top">
+          <div>
+            ${e.mucDRL !== '0' ? `<div class="drl-muc-badge">MỤC ${e.mucDRL} — ${(DRL_DESCS[e.mucDRL] || '').split('—')[1]?.trim() || ''}</div>` : ''}
+            <div class="drl-item-name">${e.emoji} ${e.name}</div>
+          </div>
+          <div class="drl-pts">${e.diemDRL > 0 ? e.diemDRL + 'đ' : '—'}</div>
+        </div>
+        <div class="drl-item-meta">
+          ${e.club} &nbsp;·&nbsp; ${formatDate(e.date)}
+          &nbsp;·&nbsp; <span class="${urgentClass}">Đăng ký: ${urgentText}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//   MODAL
+// ══════════════════════════════════════════
+function openModal(id) {
+  const e = EVENTS.find(ev => ev.id === id);
+  if (!e) return;
+  const days = daysUntil(e.deadline);
+  const canRegister = e.status === 'open';
+  const reviewsForEvent = REVIEWS.filter(r => r.eventId === e.id);
+  document.getElementById('modal-body').innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-event-img" style="background:${e.color}">${e.emoji}</div>
+    <div class="modal-title">${e.name}</div>
+    <div class="modal-tags">
+      ${statusBadge(e.status)}
+      <span class="tag tag-gray">${e.type}</span>
+      ${e.mucDRL !== '0' ? `<span class="tag tag-blue">Mục ${e.mucDRL} ĐRL · ${e.diemDRL} điểm</span>` : '<span class="tag tag-gray">Không cộng ĐRL</span>'}
+      ${e.skills.map(s=>`<span class="tag tag-green">${s}</span>`).join('')}
+    </div>
+    <div class="modal-info">
+      <div class="modal-info-row"><span class="modal-info-icon">📅</span><div><div class="modal-info-label">Thời gian</div><div class="modal-info-val">${formatDate(e.date)}, ${e.time}</div></div></div>
+      <div class="modal-info-row"><span class="modal-info-icon">📍</span><div><div class="modal-info-label">Địa điểm</div><div class="modal-info-val">${e.location}</div></div></div>
+      <div class="modal-info-row"><span class="modal-info-icon">🏛️</span><div><div class="modal-info-label">Đơn vị tổ chức</div><div class="modal-info-val">${e.club}</div></div></div>
+      ${canRegister ? `<div class="modal-info-row"><span class="modal-info-icon">⏰</span><div><div class="modal-info-label">Deadline đăng ký</div><div class="modal-info-val ${days <= 3 && days >= 0 ? 'deadline-soon' : ''}">${formatDate(e.deadline)} ${days >= 0 ? '(còn ' + days + ' ngày)' : '(đã qua)'}</div></div></div>` : ''}
+      ${e.rating > 0 ? `<div class="modal-info-row"><span class="modal-info-icon">⭐</span><div><div class="modal-info-label">Đánh giá từ sinh viên</div><div class="modal-info-val">${e.rating}/5 · ${e.reviewCount} review</div></div></div>` : ''}
+    </div>
+    <div class="modal-desc">${e.desc}</div>
+    ${reviewsForEvent.length > 0 ? `
+      <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:10px">💬 Review từ người đã tham gia</div>
+      ${reviewsForEvent.slice(0,2).map(r=>`
+        <div style="background:#f9fafb;border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid #e5e7eb">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:11px;font-weight:600;color:#374151">${r.user}</span>
+            <span style="font-size:11px;color:#f59e0b">${'⭐'.repeat(r.orgStars)}</span>
+          </div>
+          <div style="font-size:12px;color:#4b5563;line-height:1.5">${r.takeaway}</div>
+        </div>
+      `).join('')}
+    ` : ''}
+    ${canRegister
+      ? `<button class="modal-btn" onclick="alert('Chuyển đến link đăng ký sự kiện!')">Đăng ký tham gia →</button>`
+      : `<div style="text-align:center;padding:12px;background:#f1f5f9;border-radius:10px;font-size:13px;color:#64748b">${e.status === 'ended' ? '⚫ Sự kiện đã kết thúc' : '🟡 Đã đóng đơn đăng ký'}</div>`
+    }
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════════
+//   UTILS
+// ══════════════════════════════════════════
+function formatDate(str) {
+  const d = new Date(str);
+  return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+}
+
+function daysUntil(str) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(str); target.setHours(0,0,0,0);
+  return Math.round((target - today) / 86400000);
+}
+
+// ══════════════════════════════════════════
+//   INIT
+// ══════════════════════════════════════════
+(async function init() {
+  const today = new Date();
+  calYear = today.getFullYear();
+  calMonth = today.getMonth();
+
+  const ok = await loadData();
+  if (ok) {
+    renderHome();
+    initExplore();
+    renderExplore();
+  }
+})();
+
+</script>
+</body>
+</html>
